@@ -3789,13 +3789,11 @@ head(murders_tibble)</code></pre>
 </ol>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXVyZGVycyAlPiUgLiRwb3B1bGF0aW9uJT4lIGRvKGFzLmxpc3QoLikpICU+JSAuJGxvZyAlPiUgLiRtZWFuICU+JSAuJGV4cFxuXG5gYGAifQ== -->
-<pre class="r"><code>murders %&gt;% .$population%&gt;% do(as.list(.)) %&gt;% .$log %&gt;% .$mean %&gt;% .$exp
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXVyZGVycyAlPiUgLiRwb3B1bGF0aW9uJT4lIC4kbG9nICU+JSAuJG1lYW4gJT4lIC4kZXhwXG5gYGAifQ== -->
+<pre class="r"><code>murders %&gt;% .$population%&gt;% .$log %&gt;% .$mean %&gt;% .$exp</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gVXNlTWV0aG9kKFwiZG9fXCIpIDogXG4gIG5vIGFwcGxpY2FibGUgbWV0aG9kIGZvciAnZG9fJyBhcHBsaWVkIHRvIGFuIG9iamVjdCBvZiBjbGFzcyBcImMoJ2RvdWJsZScsICdudW1lcmljJylcIlxuIn0= -->
-<pre><code>Error in UseMethod(&quot;do_&quot;) : 
-  no applicable method for 'do_' applied to an object of class &quot;c('double', 'numeric')&quot;</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gLiRsb2cgOiAkIG9wZXJhdG9yIGlzIGludmFsaWQgZm9yIGF0b21pYyB2ZWN0b3JzXG4ifQ== -->
+<pre><code>Error in .$log : $ operator is invalid for atomic vectors</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
