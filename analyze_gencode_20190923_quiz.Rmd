@@ -115,16 +115,11 @@ head(d)
 
 When you loaded the file, you see the message about the data class. You might want to overview this data.
 
-```{r}
-# Please write a code
-```
-
 ### 2.2. How many feature types in the GENCODE dataset?
 
 As instructed in the GENCODE website, the GENCODE dataset provides a range of annotations for the feature type. You can check feature types using `____` function.
 
 ```{r}
-# Please write a code
 head(d$feature_type)
 ```
 
@@ -144,7 +139,6 @@ Let's count the number of genes in our genome. Since we know that the column `fe
 
 
 ```{r}
-# Please write a code
 d1 = filter(d, feature_type == 'gene')
 #d1 = d[d$feature_type == 'gene',]
 ```
@@ -175,35 +169,37 @@ write.table(d1, 'table.gene_genecode.20190918.txt', sep='\t', quote=F, row.names
 tail(d1$info)
 ```
 
-```{r}
+```{r echo=TRUE}
 #1. 유전자(gene)들만 선택을 합니다. 여기에서 gene_id, gene_name, hgnc_id, gene_type, chromosome, start, end, strand를 갖는 data frame을 만들고, txt 파일로 저장합니다. 이때 hgnc 정보가 부재한 유전자들은 0으로 표시합니다. 
 
-d1 = filter(d, feature_type == 'gene')
+#d1 = filter(d, feature_type == 'gene')
 #d1 = d[d$feature_type == 'gene',]
 
-d1$gene_id <- as.character(do.call(rbind.data.frame, strsplit(d1$info, 'gene_id\\s+"'))[[2]])
-d1$gene_id <- as.character(do.call(rbind.data.frame, strsplit(d1$gene_id, '\\"'))[[1]])
+#d1$gene_id <- as.character(do.call(rbind.data.frame, strsplit(d1$info, 'gene_id\\s+"'))[[2]])
+#d1$gene_id <- as.character(do.call(rbind.data.frame, strsplit(d1$gene_id, '\\"'))[[1]])
 
-d1$gene_name <- as.character(do.call(rbind.data.frame, strsplit(d1$info, 'gene_name\\s+"'))[[2]])
-d1$gene_name <- as.character(do.call(rbind.data.frame, strsplit(d1$gene_name, '\\"'))[[1]])
+#d1$gene_name <- as.character(do.call(rbind.data.frame, strsplit(d1$info, 'gene_name\\s+"'))[[2]])
+#d1$gene_name <- as.character(do.call(rbind.data.frame, strsplit(d1$gene_name, '\\"'))[[1]])
 
-d1$hgnc_id <- ifelse(grepl('HGNC', d1$info), 1, 0)
+#d1$hgnc_id <- ifelse(grepl('HGNC', d1$info), 1, 0)
 
-d1$gene_type <- as.character(do.call(rbind.data.frame, strsplit(d1$info, 'gene_type\\s+"'))[[2]])
-d1$gene_type <- as.character(do.call(rbind.data.frame, strsplit(d1$gene_type, '\\"'))[[1]])
+#d1$gene_type <- as.character(do.call(rbind.data.frame, strsplit(d1$info, 'gene_type\\s+"'))[[2]])
+#d1$gene_type <- as.character(do.call(rbind.data.frame, strsplit(d1$gene_type, '\\"'))[[1]])
 
-d5 <- select(d1, chrom, start, end, strand, gene_id, gene_name, hgnc_id, gene_type)
+#d5 <- select(d1, chrom, start, end, strand, gene_id, gene_name, hgnc_id, gene_type)
 
-write.table(d5, 'table.gene_genecode_plusinfo.20190923.txt', sep='\t', quote=F, row.names = F, col.names = T)
+#write.table(d5, 'table.gene_genecode_plusinfo.20190923.txt', sep='\t', quote=F, row.names = F, col.names = T)
+
+head(d5)
 ```
 
-```{r}
+```{r echo=TRUE}
 #2. gene biotype에 따라 hgnc 정보 존재 여부를 계수합니다.
 
 d5 %>% group_by(gene_type) %>% summarize(n = sum(ifelse(hgnc_id == 1, 1, 0)))
 ```
 
-```{r}
+```{r echo=TRUE}
 #3. hgnc 여부에 따라 level을 나눕니다. level은 transcript_support_level이 아니라, 그냥 level입니다.
 
 d0 <- separate(d1, info, sep = ';', into = c('one','two','three','four'))
