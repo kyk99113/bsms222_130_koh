@@ -1,0 +1,196 @@
+---
+title: "Assignment 1 - Visualize This"
+output: html_notebook
+---
+
+#### **Question**: DDG2P: mutation consequence와 organ specificity의 연관성에 따른 pLI 분석
+
+#### **Data**: The Development Disorders Genotype-Phenotype Database(DDG2P)
+
+
+## Introduction
+'The Development Disorders Genotype-Phenotype Database(DDG2P)'란 'developmental disorders'와 연관된 것으로 보고된 gene들의 curated list이다. 이는 DDD(Deciphering Development Disorders) study의 한 부분으로서 likely causal variants를 분석하기 위해 편집된 data이다.
+
+(Source: [DECIPHER](https://decipher.sanger.ac.uk/ddd#overview))
+
+
+## Loading Packages
+
+데이터 분석에 필요한 package들을 load해준다.
+
+```{r echo=TRUE}
+install.packages("tidyverse")
+library(tidyverse)
+install.packages("dslabs")
+library(dslabs)
+library(dplyr)
+library(ggplot2)
+```
+
+
+## Loading Data
+
+`DDG2P` data를 `read.delim` function을 이용하여 R object로 저장해준다.
+
+```{r echo=TRUE}
+ddg2p <- read.delim("DDG2P_24_9_2019.with_pLI.txt", header = T, sep = "\t")
+```
+
+
+## Purpose of the project
+자료 분석 주제를 정하기 위해 `head` function을 사용하여 자료를 살펴본다.
+
+```{r}
+head(ddg2p)
+```
+필자는 `DDG2P` data의 17가지 column들을 살펴보던 중, 특정한 organ에서는 소수의 특정 gene들이 큰 영향을 줄 것인데, 이 gene에 특정한 mutation이 일어났을 때 어떤 organ이 얼마나 영향을 받는지에 대한 궁금증이 생겼다. 또한 gene에 specific한 값인 pLI score에 대해서도 함께 분석해보고자 하는 호기심이 생겼다. 
+따라서 "`gene`에서 발생한 `mutation consequence`와 `organ specificity`가 어떤 연관성을 가지고 있으며, 그에 따라 `pLI` 값은 어떤 양상을 보이는가?"에 대하여 분석해보고자 한다.
+
+
+## Studying Data
+
+주제에 따라 `DDG2P` 자료에서 필자가 다룰 column은 `gene.symbol`, `mutation.consequence`, `organ.specificity.list`, `pLI` 이다. 
+
+본격적인 data 분석을 시작하기 전, 각 column과 그에 속하는 item들에 대해 알아보자.
+
+첫번째로 `mutation.consequence`에 속한 item들을 살펴보겠다.
+
+```{r echo=TRUE}
+ddg2p %>% group_by(mutation.consequence) %>% count() %>% arrange(desc(n))
+```
+
+* `loss of function`
+: Nonsense, frame-shifting indel, essential splice site mutation, whole gene deletion or any other mutation where functional analysis demonstrates clear reduction or loss of function
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `all missense/in frame`
+: Where all the mutations described in the data source are either missense or in frame deletions and there is no evidence favoring either loss-of-function, activating or dominant negative effect
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `uncertain`
+: Where the exact nature of the mutation is unclear or not recorded
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `activating`
+: Mutation, usually missense that results in a constituative functional activation of the gene product 
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `dominant negative`
+: Mutation within one allele of a gene that creates a significantly greater deleterious effect on gene product function than a monoallelic loss of function mutation
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `cis-regulatory or promotor mutation`
+: Mutation in cis-regulatory elements that lies outwith the known transcription unit and promotor of the controlled gene
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `5_prime or 3_prime UTR mutation`
+: Mutation occured at 5' UTR or 3' UTR. 5' UTR is the portion of an mRNA from the 5' end to the position of the first codon used in translation. The 3' UTR is the portion of an mRNA from the 3' end of the mRNA to the position of the last codon used in translation. (Source: [Definition of the UTR](http://groups.molbiosci.northwestern.edu/holmgren/Glossary/Definitions/Def-U/UTR.html))
+
+* `gain of function`
+: Mutation, usually missense that results in a constituative functional activation of the gene product 
+`gain of function'은 'activating'과 같은 mutation이다.
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+* `increased gene dosage`
+: Copy number variation that increases the functional dosage of the gene
+(Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
+
+결과적으로 `mutation.consequence`에는 총 8가지 mutation consequence가 item으로 존재함을 알 수 있다.
+
+두번째로 `organ.specificity.list`에 속한 item들을 살펴보겠다.
+
+우선 `organ.spscificity.list` column을 살펴보면 한 gene이 해당 mutation consequence에 대하여 여러가지 organ specificity를 가지는데, 이게 한꺼번에 하나의 row에 쓰인 경우가 존재한다. 따라서 `separate_rows` function을 사용하여 이 organ specificity 정보를 개별의 row로 변환해준다. 
+(`organ.specificity.list`에 속하는 item들을 살펴본 결과, `/`, `%`, `:`는 어떠한 organ인지에 대한 정보를 좁혀주는 용도로 사용되었으므로 separate하면 안된다.)
+
+```{r}
+ddg2p_tidy <- ddg2p %>% separate_rows(organ.specificity.list, sep = ';')
+```
+
+이제 item들을 살펴보자.
+
+```{r}
+ddg2p_tidy %>% group_by(organ.specificity.list) %>% count() %>% arrange(desc(n))
+```
+
+이렇게 총 26가지 organ이 item으로 존재함을 알 수 있다.
+
+세번째로 `pLI`라는 이름의 column에 들어있는 `pLI score`에 대해 알아보겠다.
+`pLI score`이란 '특정 유전자에 loss of function이 발생했을 때 정상적으로 작동하지 않을 확률'이다. 따라서 `pLI score`이 높은 유전자는 약간의 돌연변이가 발생하더라도 유전자에 큰 영향을 미칠 확률이 높다.
+또한 `pLI score`에서 유의할 점은, 이 값은 gene specific하며 다른 mutation이 아닌 'loss of function'과만 관련이 있는 값이라는 사실이다.
+
+(Source: [DECIPHER](https://decipher.sanger.ac.uk/info/loss-intolerance))
+
+그럼 이제 각 column에 대한 분석이 끝났으니, 필자가 알아보고자 하는 주제에 대한 분석을 시작하겠다.
+
+
+## Analyzing Data
+
+데이터를 분석하는 동안 orginal한 자료를 해칠 수 있으므로, 필요한 column들만 간추려 'p'라는 새로운 data frame을 만든다.
+
+```{r}
+p <- ddg2p_tidy %>% select(gene.symbol, mutation.consequence, organ.specificity.list, pLI)
+```
+
+그리고 `Studying the data`에서 알아본대로, `mutation.sequence`에서 'activating' = 'gain of function'이므로 'gain of function'을 모두 'activating'으로 바꿔 통일해준다. 또한 'NA'들은 빈도수를 비교함에 있어서는 무의미하므로 모두 삭제해준다.
+
+```{r}
+p <- p %>% filter(!is.na(mutation.consequence) & !is.na(organ.specificity.list)) %>% mutate(mutation.consequence = gsub('gain of function', 'activating', mutation.consequence))
+```
+
+
+### Analysis 1
+
+: 어떤 mutation consequence가 일어났을 때 어떤 organ이 specific하게 영향을 받았는지 빈도수를 summarize해봄으로써 알아보자.
+
+그 전에 `mutation.consequence`에서 `uncertain`이라는 item에 대해 먼저 생각해보자. 
+`uncertain` mutation의 정의는 'Where the exact nature of the mutation is unclear or not recorded'이다. 필자는 `organ.specificity.list`를 사용하여 data `p`를 grouping하고 빈도수를 계산할 것이다. 이 때, `uncertain` mutation에 해당하는 row들은 모두 mutation의 이유가 unclear하거나 not recorded하여 동일한 mutation이 아님에도 불구하고 하나의 category로 빈도수가 측정된다. 이는 data 분석에 있어 왜곡을 줄 수 있으므로 `filter` function을 사용하여 data에서 걸러준다.
+
+```{r}
+a <- p %>% filter(!mutation.consequence == 'uncertain') %>% group_by(mutation.consequence, organ.specificity.list) %>% count() %>% arrange(desc(n))
+a
+```
+
+```{r}
+a %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) 
+```
+
+새로 생성한 data `a`를 가지고 plot을 만든 결과 `loss of function`, `all missense/in frame`, `activating`에 해당하는 row의 수가 압도적이어서 data의 분포 파악이 어렵다는 것을 알 수 있다. 따라서 그 외의 `mutation.consequence`에 해당하는 item들은 `others`라는 이름으로 묶어주도록 한다.
+
+```{r}
+b <- p %>% filter(!mutation.consequence == 'uncertain') %>% mutate(mutation.consequence = gsub('dominant negative', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub('cis-regulatory or promotor mutation', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub('5_prime or 3_prime UTR mutation', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub( 'increased gene dosage', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub('part of contiguous gene duplication', 'others', mutation.consequence)) %>% group_by(mutation.consequence, organ.specificity.list) %>% count() %>% arrange(desc(n))
+b
+```
+
+```{r}
+analysis_1 <- b %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) + ggtitle("The number of genes sorted according to \nmutation consequence and organ specificity") + theme(plot.title = element_text(size = 12, face = "bold"))
+analysis_1
+```
+
+
+### Analysis 2
+
+: 이에 대한 pLI 값의 관련성
+
+앞서 공부한 내용에 따르면, `pLI score`란 '특정 유전자에 loss of function이 발생했을 때 정상적으로 작동하지 않을 확률'이므로 gene에 specific한 값임을 알 수 있다. 그러나 필자는 이 사실을 한 번 더 확인하기 위해 같은 gene.symbol에 대해 다른 pLI값을 가지는 경우가 있는지 확인하겠다.
+
+```{r}
+ddg2p %>% group_by(gene.symbol, pLI) %>% count() %>% nrow()
+ddg2p %>% group_by(gene.symbol) %>% count() %>% nrow()
+```
+
+다음과 같이 두 count 결과의 row 수는 1,801개로 동일하다. 따라서 pLI란 gene에 specific한 값임이 한 번 더 증명되었다.
+
+또한 `pLI score`에서 유의할 점은, 이 값은 다른 mutation이 아닌 'loss of function'과만 관련이 있는 값이라는 사실이다. 따라서 `mutation.consequence`가 'loss of function'인 row들만 걸러준다. 
+그리고 필자는 특정 organ에 영향을 주는 gene들의 pLI값의 평균을 냄으로써 어떠한 organ에서 'loss of function' mutation이 일어났을 때 제일 정상적으로 작동하지 않을지에 대해 알아볼 것이다.
+
+```{r}
+pLI_organ <- p %>% filter(mutation.consequence == 'loss of function') %>% group_by(organ.specificity.list) %>% summarize(avg_pLI = mean(pLI)) %>% mutate(organ.specificity.list = reorder(organ.specificity.list, avg_pLI))
+```
+
+```{r}
+pLI_organ %>% ggplot(aes(x = organ.specificity.list, y = avg_pLI)) + geom_bar(stat = 'identity') + coord_flip() + theme(axis.text.y = element_text(size = 6)) + xlab("") + ggtitle("Average pLI score according to the organ") 
+```
+
+## Conclusion
+
+
