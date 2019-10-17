@@ -8,13 +8,13 @@ output: html_notebook
 #### **Data**: The Development Disorders Genotype-Phenotype Database(DDG2P)
 
 
-## Introduction
-'The Development Disorders Genotype-Phenotype Database(DDG2P)'란 'developmental disorders'와 연관된 것으로 보고된 gene들의 curated list이다. 이는 DDD(Deciphering Development Disorders) study의 한 부분으로서 likely causal variants를 분석하기 위해 편집된 data이다.
+## **Introduction**
+'The Development Disorders Genotype-Phenotype Database(DDG2P)'란 'developmental disorders'와 연관된 것으로 보고된 gene들의 curated list이다. 이는 'DDD(Deciphering Development Disorders) study'의 한 부분으로서 likely causal variants를 분석하기 위해 편집된 data이다.
 
 (Source: [DECIPHER](https://decipher.sanger.ac.uk/ddd#overview))
 
 
-## Loading Packages
+## **Loading Packages**
 
 데이터 분석에 필요한 package들을 load해준다.
 
@@ -25,10 +25,12 @@ install.packages("dslabs")
 library(dslabs)
 library(dplyr)
 library(ggplot2)
+install.packages("ggthemes")
+library(ggthemes)
 ```
 
 
-## Loading Data
+## **Loading Data**
 
 `DDG2P` data를 `read.delim` function을 이용하여 R object로 저장해준다.
 
@@ -37,7 +39,7 @@ ddg2p <- read.delim("DDG2P_24_9_2019.with_pLI.txt", header = T, sep = "\t")
 ```
 
 
-## Purpose of the project
+## **Purpose of the project**
 자료 분석 주제를 정하기 위해 `head` function을 사용하여 자료를 살펴본다.
 
 ```{r}
@@ -47,7 +49,7 @@ head(ddg2p)
 따라서 "`gene`에서 발생한 `mutation consequence`와 `organ specificity`가 어떤 연관성을 가지고 있으며, 그에 따라 `pLI` 값은 어떤 양상을 보이는가?"에 대하여 분석해보고자 한다.
 
 
-## Studying Data
+## **Studying Data**
 
 주제에 따라 `DDG2P` 자료에서 필자가 다룰 column은 `gene.symbol`, `mutation.consequence`, `organ.specificity.list`, `pLI` 이다. 
 
@@ -80,7 +82,7 @@ ddg2p %>% group_by(mutation.consequence) %>% count() %>% arrange(desc(n))
 (Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
 
 * `cis-regulatory or promotor mutation`
-: Mutation in cis-regulatory elements that lies outwith the known transcription unit and promotor of the controlled gene
+: Mutation in cis-regulatory elements that lies out with the known transcription unit and promotor of the controlled gene
 (Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
 
 * `5_prime or 3_prime UTR mutation`
@@ -95,9 +97,13 @@ ddg2p %>% group_by(mutation.consequence) %>% count() %>% arrange(desc(n))
 : Copy number variation that increases the functional dosage of the gene
 (Source: [Definitions of the terms used in the database](https://decipher.sanger.ac.uk/files/ddd/ddg2p_definitions_of_terms.pdf))
 
-결과적으로 `mutation.consequence`에는 총 8가지 mutation consequence가 item으로 존재함을 알 수 있다.
+결과적으로 `mutation.consequence`에는 총 10가지 mutation consequence가 item으로 존재함을 알 수 있다.
 
 두번째로 `organ.specificity.list`에 속한 item들을 살펴보겠다.
+
+```{r}
+head(ddg2p$organ.specificity.list)
+```
 
 우선 `organ.spscificity.list` column을 살펴보면 한 gene이 해당 mutation consequence에 대하여 여러가지 organ specificity를 가지는데, 이게 한꺼번에 하나의 row에 쓰인 경우가 존재한다. 따라서 `separate_rows` function을 사용하여 이 organ specificity 정보를 개별의 row로 변환해준다. 
 (`organ.specificity.list`에 속하는 item들을 살펴본 결과, `/`, `%`, `:`는 어떠한 organ인지에 대한 정보를 좁혀주는 용도로 사용되었으므로 separate하면 안된다.)
@@ -108,37 +114,37 @@ ddg2p_tidy <- ddg2p %>% separate_rows(organ.specificity.list, sep = ';')
 
 이제 item들을 살펴보자.
 
-```{r}
+```{r echo=TRUE}
 ddg2p_tidy %>% group_by(organ.specificity.list) %>% count() %>% arrange(desc(n))
 ```
 
-이렇게 총 26가지 organ이 item으로 존재함을 알 수 있다.
+이렇게 총 25가지 organ이 item으로 존재함을 알 수 있다.
 
 세번째로 `pLI`라는 이름의 column에 들어있는 `pLI score`에 대해 알아보겠다.
-`pLI score`이란 '특정 유전자에 loss of function이 발생했을 때 정상적으로 작동하지 않을 확률'이다. 따라서 `pLI score`이 높은 유전자는 약간의 돌연변이가 발생하더라도 유전자에 큰 영향을 미칠 확률이 높다.
-또한 `pLI score`에서 유의할 점은, 이 값은 gene specific하며 다른 mutation이 아닌 'loss of function'과만 관련이 있는 값이라는 사실이다.
+`pLI score`이란 '특정 유전자에 loss of function이 발생했을 때 정상적으로 작동하지 않을 확률'이다. 따라서 `pLI score`이 높은 유전자는 약간의 돌연변이가 발생하더라도 유전자에 큰 영향을 미칠 확률이 높다고 해석할 수 있다.
+또한 `pLI score`에서 유의할 점은, 이 값은 **gene specific**하며 다른 mutation이 아닌 **'loss of function'**과만 관련이 있는 값이라는 사실이다.
 
 (Source: [DECIPHER](https://decipher.sanger.ac.uk/info/loss-intolerance))
 
 그럼 이제 각 column에 대한 분석이 끝났으니, 필자가 알아보고자 하는 주제에 대한 분석을 시작하겠다.
 
 
-## Analyzing Data
+## **Analyzing Data**
 
-데이터를 분석하는 동안 orginal한 자료를 해칠 수 있으므로, 필요한 column들만 간추려 'p'라는 새로운 data frame을 만든다.
+데이터를 분석하는 동안 orginal한 자료를 해칠 수 있으므로, 필요한 column들만 간추려 `p`라는 새로운 data frame을 만든다.
 
 ```{r}
 p <- ddg2p_tidy %>% select(gene.symbol, mutation.consequence, organ.specificity.list, pLI)
 ```
 
-그리고 `Studying the data`에서 알아본대로, `mutation.sequence`에서 'activating' = 'gain of function'이므로 'gain of function'을 모두 'activating'으로 바꿔 통일해준다. 또한 'NA'들은 빈도수를 비교함에 있어서는 무의미하므로 모두 삭제해준다.
+그리고 `Studying data`에서 알아본대로, `mutation.consequence`에서 'activating'과 'gain of function'은 같은 mutation consequence이므로 'gain of function'을 모두 'activating'으로 바꿔 통일해준다. 또한 `NA`들은 빈도수를 비교함에 있어서는 무의미하므로 모두 삭제해준다.
 
 ```{r}
 p <- p %>% filter(!is.na(mutation.consequence) & !is.na(organ.specificity.list)) %>% mutate(mutation.consequence = gsub('gain of function', 'activating', mutation.consequence))
 ```
 
 
-### Analysis 1
+### **Analysis 1**
 
 : 어떤 mutation consequence가 일어났을 때 어떤 organ이 specific하게 영향을 받았는지 빈도수를 summarize해봄으로써 알아보자.
 
@@ -150,30 +156,31 @@ a <- p %>% filter(!mutation.consequence == 'uncertain') %>% group_by(mutation.co
 a
 ```
 
-```{r}
+```{r echo=TRUE}
 a %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) 
 ```
 
 새로 생성한 data `a`를 가지고 plot을 만든 결과 `loss of function`, `all missense/in frame`, `activating`에 해당하는 row의 수가 압도적이어서 data의 분포 파악이 어렵다는 것을 알 수 있다. 따라서 그 외의 `mutation.consequence`에 해당하는 item들은 `others`라는 이름으로 묶어주도록 한다.
 
-```{r}
+```{r echo=TRUE}
 b <- p %>% filter(!mutation.consequence == 'uncertain') %>% mutate(mutation.consequence = gsub('dominant negative', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub('cis-regulatory or promotor mutation', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub('5_prime or 3_prime UTR mutation', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub( 'increased gene dosage', 'others', mutation.consequence)) %>% mutate(mutation.consequence = gsub('part of contiguous gene duplication', 'others', mutation.consequence)) %>% group_by(mutation.consequence, organ.specificity.list) %>% count() %>% arrange(desc(n))
 b
 ```
 
-```{r}
-analysis_1 <- b %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) + ggtitle("The number of genes sorted according to \nmutation consequence and organ specificity") + theme(plot.title = element_text(size = 12, face = "bold"))
+```{r echo=TRUE}
+analysis_1 <- b %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) + ggtitle("The number of genes sorted according to \nmutation consequence and organ specificity") + theme(plot.title = element_text(size = 12, face = "bold")) 
 analysis_1
+ggsave("analysis_1.pdf", analysis_1)
 ```
 
 
-### Analysis 2
+### **Analysis 2**
 
 : 이에 대한 pLI 값의 관련성
 
-앞서 공부한 내용에 따르면, `pLI score`란 '특정 유전자에 loss of function이 발생했을 때 정상적으로 작동하지 않을 확률'이므로 gene에 specific한 값임을 알 수 있다. 그러나 필자는 이 사실을 한 번 더 확인하기 위해 같은 gene.symbol에 대해 다른 pLI값을 가지는 경우가 있는지 확인하겠다.
+앞서 공부한 내용에 따르면, `pLI score`란 '특정 유전자에 loss of function이 발생했을 때 정상적으로 작동하지 않을 확률'이므로 gene에 specific한 값임을 알 수 있다. 그러나 필자는 이 사실을 한 번 더 확인하기 위해 같은 `gene.symbol`에 대해 다른 `pLI` 값을 가지는 경우가 있는지 확인하겠다.
 
-```{r}
+```{r echo=TRUE}
 ddg2p %>% group_by(gene.symbol, pLI) %>% count() %>% nrow()
 ddg2p %>% group_by(gene.symbol) %>% count() %>% nrow()
 ```
@@ -183,14 +190,55 @@ ddg2p %>% group_by(gene.symbol) %>% count() %>% nrow()
 또한 `pLI score`에서 유의할 점은, 이 값은 다른 mutation이 아닌 'loss of function'과만 관련이 있는 값이라는 사실이다. 따라서 `mutation.consequence`가 'loss of function'인 row들만 걸러준다. 
 그리고 필자는 특정 organ에 영향을 주는 gene들의 pLI값의 평균을 냄으로써 어떠한 organ에서 'loss of function' mutation이 일어났을 때 제일 정상적으로 작동하지 않을지에 대해 알아볼 것이다.
 
-```{r}
+plot을 제작하기에 앞서, organ별로 lof가 일어난 gene들의 pLI score의 평균을 내어, `organ.specificity.list`에 대하여 pLI score의 평균인 `avg_pLI`를 가지는 `pLI_organ`이라는 이름의 data frame을 만들어준다.
+
+```{r echo=TRUE}
 pLI_organ <- p %>% filter(mutation.consequence == 'loss of function') %>% group_by(organ.specificity.list) %>% summarize(avg_pLI = mean(pLI)) %>% mutate(organ.specificity.list = reorder(organ.specificity.list, avg_pLI))
+pLI_organ
 ```
+
+그리고 이 data frame을 사용하여 barplot을 생성한다.
+
+```{r echo=TRUE}
+analysis_2 <- pLI_organ %>% ggplot(aes(x = organ.specificity.list, y = avg_pLI)) + geom_bar(stat = 'identity') + coord_flip() + theme(axis.text.y = element_text(size = 6)) + xlab("") + ggtitle("Average pLI score according to the organ") + theme(plot.title = element_text(size = 9, face = "bold"))
+#+ theme_wsj() + scale_colour_wsj("colors6")
+analysis_2
+ggsave("analysis_2.pdf", analysis_2)
+```
+
+## **Conclusion**
+분석하고자 했던 내용을 담은 plot을 모두 생성했으므로, 이젠 그로 인해 알아낼 수 있는 사실들을 정리해보겠다.
+
+### **Analysis 1**
+이 plot을 통해서는 각 `organ`에 specific하게 작용하는 `gene`들에 어떠한 `mutation consequence`가 가장 많이 발생하여 developmental disorder에 영향을 주었는지, 또는 각 `mutation consequence`가 일어난 `gene`들이 어떤 `organ`에 가장 specific하게 영향을 주어 developmental disorder이 나타났는지를 알 수 있다.
+
+우선 developmental disorder에 연관이 있는 gene들에는 8가지 `mutation consequence` 중 **loss of function**이 압도적으로 많이 발생했음을 단번에 알 수 있다. 그리고 **loss of function**이라는 mutation이 발생하여 **Brain/Cognition**이라는 organ이 영향을 받아 developmental disorder에 영향을 주는 gene이 제일 많다는 사실을 알 수 있다. 
+
+### **Analysis 2**
+`pLI score`이 높은 유전자는 약간의 돌연변이가 발생하더라도 유전자에 큰 영향을 미칠 확률이 높다는 사실을 
+`Studying data`를 통해 알고있다. 
+
+`Face`라는 organ에 영향을 주는 gene들은 상대적으로 높은 `pLI score`을 가져(higher than 0.65) lof가 발생하면 이 유전자에 큰 영향을 미쳐 `Face`에 developmental disorder을 가지게 될 가능성이 높다.
+
+반면 `Liver`, `Eye:Lens`, `Eye:Retina`라는 organ에 영향을 주는 gene들은 low pLI score(pLI ≤ 0.1)을 가져 lof가 발생해도 이 유전자에 작은 영향을 미쳐 각 organ에 developmental disorder을 가지게 될 가능성이 낮다.
+
+
+
+### **Limitation**
+
+`Analysis 2`에서 필자는 `pLI` 값의 평균을 내었다. 그러나 data를 분석하던 중 `avg_pLI`라는 값이 유효한 값인가 생각해 볼 필요가 있다는 사실을 깨달았다. 
+
+기존의 `ddg2p` data에서 `pLI score`을 살펴보면, 
 
 ```{r}
-pLI_organ %>% ggplot(aes(x = organ.specificity.list, y = avg_pLI)) + geom_bar(stat = 'identity') + coord_flip() + theme(axis.text.y = element_text(size = 6)) + xlab("") + ggtitle("Average pLI score according to the organ") 
+max(ddg2p$pLI)
+min(ddg2p$pLI)
 ```
 
-## Conclusion
+이와 같이 최대값은 1, 최소값은 3.38323e-52로 차이가 굉장이 크다. 만약 평균값을 낼 대상인 자료의 대부분이 매우 작은 `pLI score`에 해당한다 하더라도 `pLI score`가 1인 gene이 자료에 포함되어 있다면 평균값은 굉장히 커질 것이다. 
+
+이처럼 평균을 내려하는 자료의 `pLI score`들의 크기가 천차만별이므로 단순히 평균을 내는 것은 분석에 왜곡을 줄 수 있다. 따라서 자료의 분산까지 고려한 방식을 고안하여 계산하는 것이 더 유효한 결과를 낼 수 있을 것이다.
+
+
 
 
