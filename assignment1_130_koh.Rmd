@@ -168,7 +168,7 @@ b
 ```
 
 ```{r echo=TRUE}
-analysis_1 <- b %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) + ggtitle("The number of genes sorted according to \nmutation consequence and organ specificity") + theme(plot.title = element_text(size = 12, face = "bold"), axis.text.x = element_text(angle = 90), strip.text.x = element_text(size = 4)) 
+analysis_1 <- b %>% ggplot(aes(x = organ.specificity.list, y = n)) + geom_bar(stat = "identity") + coord_flip() + xlab("") + facet_grid(~mutation.consequence) + ggtitle("The number of genes sorted according to \nmutation consequence and organ specificity") + theme(plot.title = element_text(size = 12, face = "bold"), axis.text.x = element_text(angle = 90), strip.text.x = element_text(size = 6.5)) 
 analysis_1
 ggsave("analysis_1.pdf", analysis_1)
 ```
