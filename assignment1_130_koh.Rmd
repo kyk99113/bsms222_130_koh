@@ -200,8 +200,7 @@ pLI_organ
 그리고 이 data frame을 사용하여 barplot을 생성한다.
 
 ```{r echo=TRUE}
-analysis_2 <- pLI_organ %>% ggplot(aes(x = organ.specificity.list, y = avg_pLI)) + geom_bar(stat = 'identity') + coord_flip() + theme(axis.text.y = element_text(size = 6)) + xlab("") + ggtitle("Average pLI score according to the organ") + theme(plot.title = element_text(size = 9, face = "bold"))
-#+ theme_wsj() + scale_colour_wsj("colors6")
+analysis_2 <- pLI_organ %>% ggplot(aes(x = organ.specificity.list, y = avg_pLI)) + geom_bar(stat = 'identity') + coord_flip() + theme(axis.text.y = element_text(size = 6)) + xlab("") + ggtitle("Average pLI score according to the organ") + theme(plot.title = element_text(size = 13, face = "bold"), axis.text.y = element_text(size = 8))
 analysis_2
 ggsave("analysis_2.pdf", analysis_2)
 ```
