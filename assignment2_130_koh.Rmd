@@ -7,7 +7,7 @@ output: html_notebook
 
 #### **Data**: The Development Disorders Genotype-Phenotype Database(DDG2P)
 
-
+ 
 ## **Introduction**
 'The Development Disorders Genotype-Phenotype Database(DDG2P)'란 'developmental disorders'와 연관된 것으로 보고된 gene들의 curated list이다. 이는 'DDD(Deciphering Development Disorders) study'의 한 부분으로서 likely causal variants를 분석하기 위해 편집된 data이다.
 
@@ -242,13 +242,16 @@ min(ddg2p$pLI)
 ### **Feedback**
 
 1) "그러나 단점으로는 우선 색이 흑백으로만 되어있어 굉장히 단조롭고, mutation consequence가 너무 빼곡하게 배열되어있다."
+
 -반영하여 color을 입히고 facet grid 대신 geom_bar을 사용해보기로 한다.
 
 2) "또한, lof의 경우 n이 1000 까지도 나타나기 때문에 0에서 1000 까지의 범위를 잡는 것이 적절하지만, activating, others는 가장 빈도가 높은 데이터도 250에 미치지 못하기 때문에 1000으로 범위를 잡는 것은 적절하지 못하기 때문에 범위를 재조정하여 데이터를 나타냈으면 더 좋았을 것 같다."
 "다만, 같은 선상에서 lof만 범위를 다르게 한다면 관찰자가 수치를 해석할 때 오류를 범할 가능성이 있으므로 범위가 다름을 나타낼 수 있도록 해야 한다. 예를 들어 lof와 action+others를 row를 구분하여 두 줄의 layout으로 표현하는 등의 방법이 있을 것이다."
+
 -그러나 다른 선상에 두고 범위를 다르게 한다고 해도 관찰자의 수치 해석에 방해가 된다고 생각하기에 반영하지 않는다.
 
 3) "아쉬운 점은 y 축의 label이 너무 긴 경우이다. 대신에 축약어를 사용해 간략하게 나타내는 것이 깔끔해 보일 것이다. 또 유의미한 값이 brain/cognition인 만큼 해당 데이터만 다른 색으로 지정해 나타낸다면 말하고자 하는 바를 한번에 활실하게 전할 수 있을 것이다."
+
 -축약어를 사용하는 것은 오히려 plot 해석에 있어 문제가 발생할 수 있으므로 반영하지 않는다.
 
 ```{r echo=TRUE}
