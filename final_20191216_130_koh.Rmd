@@ -1,0 +1,82 @@
+---
+title: "Final exam"
+output: html_notebook
+---
+Q1)
+```{r}
+data("heights")
+
+heights %>% ggplot(aes(height, fill = sex)) + geom_density(alpha = 0.25)
+
+x <- heights %>% filter(sex == "Female")
+mean(x$height<=61)
+```
+-남성의 평균키가 여성의 평균키에 비해 크다는 것을 알 수 있고, 여성의 키 분포가 더욱 평균에 치중해있음을 알 수 있다.
+
+Q2)
+```{r}
+set.seed(1)
+N <-1000
+X <- sample(c(15, -1), size = N, replace = TRUE, prob = c(3/38, 35/38))
+
+expected_value <- (15*3/38 + 35/38*-1)*N
+expected_value
+
+B <- 1000
+sim <- replicate(B, {
+X <- sample(c(15, -1), size = N, replace = TRUE, prob = c(3/38, 35/38))
+sum(X)
+})
+
+sim2 <- data.frame(sim)
+sim2 %>% mutate(n = c(1:1000)) %>% ggplot(aes(x=n, y=sim)) + geom_jitter() + geom_hline(yintercept = 263.1579, color="blue")
+```
+
+-plot에서 보여지는 결과가 expected value 주변으로 밀집되어 있는 것을 보아 1000번은 이 simulation에서 유효한 결과를 내는데에 충분한 횟수였음을 알 수 있다. 
+
+Q3)
+```{r}
+#1
+once <- replicate(100, {
+X <- sample(c(15, -1), size = 10, replace = TRUE, prob = c(0.45, 0.55))
+mean(X)
+})
+
+as.data.frame(once) %>% ggplot(aes(x=once)) + geom_histogram(col = "black")
+
+data.frame(once) %>% ggplot(aes(sample=once)) + geom_qq() + geom_qq_line() + xlab("Theoretical normal") + ylab("once")
+
+#2
+twice <- replicate(100, {
+X <- sample(c(15, -1), size = 1000, replace = TRUE, prob = c(0.45, 0.55))
+sum(X)
+})
+
+as.data.frame(twice) %>% ggplot(aes(x=twice)) + geom_histogram(col = "black")
+
+data.frame(twice) %>% ggplot(aes(sample=twice)) + geom_qq() + geom_qq_line() + xlab("Theoretical normal") + ylab("twice")
+
+#3
+third <- replicate(10000, {
+X <- sample(c(15, -1), size = 10, replace = TRUE, prob = c(0.45, 0.55))
+sum(X)
+})
+
+as.data.frame(third) %>% ggplot(aes(x=third)) + geom_histogram(col = "black")
+
+data.frame(third) %>% ggplot(aes(sample=third)) + geom_qq() + geom_qq_line() + xlab("Theoretical normal") + ylab("third")
+
+#4
+fourth <- replicate(10000, {
+X <- sample(c(15, -1), size = 1000, replace = TRUE, prob = c(0.45, 0.55))
+sum(X)
+})
+
+as.data.frame(fourth) %>% ggplot(aes(x=fourth)) + geom_histogram(col = "black")
+
+data.frame(fourth) %>% ggplot(aes(sample=fourth)) + geom_qq() + geom_qq_line() + xlab("Theoretical normal") + ylab("fourth")
+```
+
+-이 simulation을 돌림에 있어 N과 B를 키웠을 때 더욱 실제의 결과와 가까워짐을 알 수 있다. 
+
+
